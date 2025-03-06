@@ -1,8 +1,10 @@
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Sustainsys.Saml2;
 using Sustainsys.Saml2.AspNetCore2;
-using Sustainsys.Saml2.Configuration;
 using Sustainsys.Saml2.Metadata;
 using TestSAML.Api.Options;
 
@@ -64,4 +66,4 @@ app.UseHttpsRedirection();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.Run();
+await app.RunAsync();
