@@ -2,6 +2,7 @@ using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Sustainsys.Saml2;
 using Sustainsys.Saml2.AspNetCore2;
+using Sustainsys.Saml2.Configuration;
 using Sustainsys.Saml2.Metadata;
 using TestSAML.Api.Options;
 
@@ -36,16 +37,17 @@ bld.Services
 
         // Single logout messages should be signed according to the SAML2 standard, so we need
         // to add a certificate for our app to sign logout messages with to enable logout functionality.
-        opt.SPOptions.ServiceCertificates.Add(new X509Certificate2("keystore.p12", password: "webion"));
-        opt.SPOptions.ReturnUrl = new Uri("https://localhost:5001/saml/login");
+        
+        opt.SPOptions.ServiceCertificates.Add(new X509Certificate2("keystore.p12"));
         
         // Add an identity provider.
         opt.IdentityProviders.Add(new IdentityProvider(
             // The identityprovider's entity id.
-            new EntityId("http://localhost:8080/realms/master"),
+            new EntityId("authentik"),
             opt.SPOptions)
         {
-            MetadataLocation = "http://localhost:8080/realms/master/protocol/saml/descriptor"
+            MetadataLocation = "http://saml.kaire.webion.it/application/saml/sofidel/metadata/",
+            LoadMetadata = true
         });
     });
 
