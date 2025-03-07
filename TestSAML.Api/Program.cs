@@ -1,8 +1,6 @@
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Sustainsys.Saml2;
 using Sustainsys.Saml2.AspNetCore2;
 using Sustainsys.Saml2.Metadata;
@@ -15,8 +13,20 @@ bld.Services
     .ValidateDataAnnotations()
     .BindConfiguration(JwtOptions.Section);
 
+string[] origins = ["http://localhost:4200", "https://localhost:4200", "http://saml.kaire.webion.it/*"];
+
 bld.Services
     .AddAuthorization()
+    .AddCors(x =>
+    {
+        x.AddDefaultPolicy(policy => policy
+            .AllowAnyHeader()
+            .AllowCredentials()
+            .AllowAnyMethod()
+            .WithOrigins(origins)
+            .SetIsOriginAllowedToAllowWildcardSubdomains()
+        );
+    })
     .AddControllers();
 
 bld.Services
@@ -28,6 +38,11 @@ bld.Services
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, opt =>
     {
         opt.LoginPath = "/saml/login";
+        opt.ReturnUrlParameter = "returnUrl";
+        opt.Cookie.Name = "saml";
+        opt.Cookie.SameSite = SameSiteMode.Lax;
+        opt.Cookie.SecurePolicy = CookieSecurePolicy.None;
+        opt.Cookie.HttpOnly = false;
     })
     .AddSaml2(opt =>
     {
@@ -58,11 +73,12 @@ bld.Services.AddEndpointsApiExplorer();
 
 var app = bld.Build();
 
+app.UseCors();
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-app.UseHttpsRedirection();
 app.UseSwagger();
 app.UseSwaggerUI();
 
