@@ -1,0 +1,22 @@
+<div>
+  @if (info$ | async; as info) {
+    Claims
+    <ul>
+      @for (claim of info.claims; track $index) {
+        <li>Type: {{ claim.type }}, Value: {{ claim.value }}</li>
+      }
+    </ul>
+    <p>Name: {{info.name}}</p>
+    <p>Authentication type: {{ info.authenticationType}}</p>
+  }
+  @else {
+    <p>No account info, please return to the <a routerLink="/" routerLinkActive="active" ariaCurrentWhenActive="page">home</a></p>
+  }
+  <div *ngIf="!logOutSuccess">
+    <button style="margin-top: 15px" (click)=logOut()>LogOut</button>
+  </div>
+  
+  <div *ngIf="logOutSuccess" style="margin-top: 15px">
+    Successfully logout, please return to <a routerLink="/" routerLinkActive="active" ariaCurrentWhenActive="page">home</a>
+  </div>
+</div>
