@@ -13,7 +13,7 @@ bld.Services
     .ValidateDataAnnotations()
     .BindConfiguration(JwtOptions.Section);
 
-string[] origins = ["http://localhost:4200", "https://localhost:4200", "http://saml.kaire.webion.it/*"];
+string[] origins = ["http://localhost:4200", "https://localhost:4200", "https://saml.kaire.webion.it/*", "http://saml.kaire.webion.it/*"];
 
 bld.Services
     .AddAuthorization()
@@ -63,7 +63,7 @@ bld.Services
             new EntityId("authentik"),
             opt.SPOptions)
         {
-            MetadataLocation = "http://saml.kaire.webion.it/application/saml/sofidel/metadata/",
+            MetadataLocation = "https://saml.kaire.webion.it/application/saml/sofidel/metadata/",
             LoadMetadata = true
         });
     });
