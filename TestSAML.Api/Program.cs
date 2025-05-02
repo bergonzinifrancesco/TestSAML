@@ -67,10 +67,10 @@ bld.Services
     .AddSaml2(opt =>
     {
         opt.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        opt.ClaimsIssuer = samlOptions.EntityId;
+        opt.ClaimsIssuer = samlOptions.PersonalEntityId;
         
         // Set up our EntityId, this is our application.
-        opt.SPOptions.EntityId = new EntityId(samlOptions.EntityId);
+        opt.SPOptions.EntityId = new EntityId(samlOptions.PersonalEntityId);
 
         // Single logout messages should be signed according to the SAML2 standard, so we need
         // to add a certificate for our app to sign logout messages with to enable logout functionality.
@@ -83,7 +83,7 @@ bld.Services
         // Add an identity provider.
         opt.IdentityProviders.Add(new IdentityProvider(
             // The identityprovider's entity id.
-            new EntityId("authentik"),
+            new EntityId(samlOptions.ProviderEntityId),
             opt.SPOptions)
         {
             MetadataLocation = samlOptions.MetadataLocationUrl,
