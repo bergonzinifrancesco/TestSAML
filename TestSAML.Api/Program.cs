@@ -1,19 +1,39 @@
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Cors.Infrastructure;
 using Sustainsys.Saml2;
 using Sustainsys.Saml2.AspNetCore2;
 using Sustainsys.Saml2.Metadata;
 using TestSAML.Api.Options;
+using CorsOptions = TestSAML.Api.Options.CorsOptions;
 
 var bld = WebApplication.CreateBuilder();
 bld.Configuration.AddJsonFile("appsettings.json", optional: false);
+
 bld.Services
     .AddOptions<JwtOptions>()
+    .BindConfiguration(JwtOptions.Section)
     .ValidateDataAnnotations()
-    .BindConfiguration(JwtOptions.Section);
+    .ValidateOnStart();
 
-string[] origins = ["http://localhost:4200", "https://localhost:4200", "http://saml.kaire.webion.it/*"];
+bld.Services
+    .AddOptions<CorsOptions>()
+    .BindConfiguration(CorsOptions.Section)
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+bld.Services
+    .AddOptions<SamlOptions>()
+    .BindConfiguration(SamlOptions.Section)
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+var samlOptions = bld.Configuration
+    .GetRequiredSection(SamlOptions.Section)
+    .Get<SamlOptions>()!;
+
+var corsOptions = bld.Configuration
+    .GetRequiredSection(CorsOptions.Section)
+    .Get<CorsOptions>()!;
 
 bld.Services
     .AddAuthorization()
@@ -23,7 +43,7 @@ bld.Services
             .AllowAnyHeader()
             .AllowCredentials()
             .AllowAnyMethod()
-            .WithOrigins(origins)
+            .WithOrigins(corsOptions.AllowedOrigins)
             .SetIsOriginAllowedToAllowWildcardSubdomains()
         );
     })
@@ -47,23 +67,26 @@ bld.Services
     .AddSaml2(opt =>
     {
         opt.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        opt.ClaimsIssuer = "webion";
+        opt.ClaimsIssuer = samlOptions.PersonalEntityId;
         
         // Set up our EntityId, this is our application.
-        opt.SPOptions.EntityId = new EntityId("webion");
+        opt.SPOptions.EntityId = new EntityId(samlOptions.PersonalEntityId);
 
         // Single logout messages should be signed according to the SAML2 standard, so we need
         // to add a certificate for our app to sign logout messages with to enable logout functionality.
-        
-        opt.SPOptions.ServiceCertificates.Add(new X509Certificate2("keystore.p12"));
+
+        foreach (var certificateName in samlOptions.CertificateNames)
+        {
+            opt.SPOptions.ServiceCertificates.Add(new X509Certificate2(certificateName));
+        }
         
         // Add an identity provider.
         opt.IdentityProviders.Add(new IdentityProvider(
             // The identityprovider's entity id.
-            new EntityId("authentik"),
+            new EntityId(samlOptions.ProviderEntityId),
             opt.SPOptions)
         {
-            MetadataLocation = "http://saml.kaire.webion.it/application/saml/sofidel/metadata/",
+            MetadataLocation = samlOptions.MetadataLocationUrl,
             LoadMetadata = true
         });
     });

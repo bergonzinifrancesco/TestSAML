@@ -8,5 +8,5 @@ public sealed class JwtOptions
     
     [Required]
     [MinLength(32)]
-    public string SigningKey { get; set; } = null!;
+    public string SigningKey { get; init; } = null!;
 }

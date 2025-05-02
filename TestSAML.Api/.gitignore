@@ -486,3 +486,6 @@ $RECYCLE.BIN/
 # Certificates
 *.pfx
 *.p12
+
+appsettings.json
+appsettings.*.json
